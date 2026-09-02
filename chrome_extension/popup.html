@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Work Status Sync Configuration</title>
+  <style>
+    body {
+      width: 320px;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+    h2 {
+      font-size: 15px;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #38bdf8;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 8px;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    input:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    button {
+      width: 100%;
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    button:hover {
+      background: #0369a1;
+    }
+    .status-badge {
+      margin-top: 12px;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      text-align: center;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+    }
+    .status-badge.online {
+      background: #064e3b;
+      border-color: #059669;
+      color: #6ee7b7;
+    }
+    .stats {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <h2>WhatsApp Sync Intelligence</h2>
+  
+  <div class="field">
+    <label for="serverUrl">Backend Server Endpoint</label>
+    <input type="text" id="serverUrl" placeholder="http://localhost:8000">
+  </div>
+
+  <div class="field">
+    <label for="apiKey">Tenant API Key</label>
+    <input type="password" id="apiKey" placeholder="ws_live_...">
+  </div>
+
+  <button id="saveBtn">Save & Verify Connection</button>
+
+  <div id="statusBadge" class="status-badge">Checking connection status...</div>
+
+  <div class="stats">
+    <span>Captured Messages: <b id="capturedCount">0</b></span>
+    <span>Last Sync: <b id="lastSyncTime">Never</b></span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
