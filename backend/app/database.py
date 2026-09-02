@@ -1,11 +1,19 @@
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import StaticPool
 from app.config import settings
+
+engine_kwargs = {"echo": False, "future": True}
+
+if "sqlite" in settings.DATABASE_URL:
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+    if os.environ.get("VERCEL"):
+        engine_kwargs["poolclass"] = StaticPool
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=False,
-    future=True
+    **engine_kwargs
 )
 
 AsyncSessionLocal = async_sessionmaker(
