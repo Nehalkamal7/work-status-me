@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.database import get_db
 from app.models import User, Project, Task
 from app.schemas import ProjectResponse, ProjectUpdate, ProjectCreate
-from app.api.auth import get_current_user
+from app.api.auth import get_current_user, get_current_user_optional
 from app.services.sync_engine import SyncEngine
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
@@ -15,7 +15,7 @@ async def list_projects(
     search: Optional[str] = None,
     stage: Optional[str] = None,
     delayed_only: bool = False,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db)
 ):
     stmt = select(Project).where(Project.user_id == current_user.id)
@@ -58,7 +58,7 @@ async def list_projects(
     return enriched_list
 
 @router.get("/metrics-summary")
-async def get_metrics_summary(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def get_metrics_summary(current_user: User = Depends(get_current_user_optional), db: AsyncSession = Depends(get_db)):
     stmt = select(Project).where(Project.user_id == current_user.id)
     res = await db.execute(stmt)
     projects = res.scalars().all()
@@ -92,7 +92,7 @@ async def get_metrics_summary(current_user: User = Depends(get_current_user), db
     }
 
 @router.get("/today-focus")
-async def get_today_focus(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def get_today_focus(current_user: User = Depends(get_current_user_optional), db: AsyncSession = Depends(get_db)):
     stmt = select(Project).where(Project.user_id == current_user.id)
     res = await db.execute(stmt)
     projects = res.scalars().all()

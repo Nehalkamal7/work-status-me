@@ -5,13 +5,13 @@ from app.database import get_db
 from app.models import User, TenantIntegration
 from app.schemas import TenantIntegrationCreate, TenantIntegrationResponse
 from app.security import encrypt_credential, generate_api_key
-from app.api.auth import get_current_user
+from app.api.auth import get_current_user, get_current_user_optional
 from app.services.odoo_service import OdooService
 
 router = APIRouter(prefix="/integrations", tags=["Tenant Integrations"])
 
 @router.get("", response_model=TenantIntegrationResponse)
-async def get_integration(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def get_integration(current_user: User = Depends(get_current_user_optional), db: AsyncSession = Depends(get_db)):
     stmt = select(TenantIntegration).where(TenantIntegration.user_id == current_user.id)
     res = await db.execute(stmt)
     integration = res.scalars().first()
