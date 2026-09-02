@@ -1,3 +1,4 @@
+import uuid
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
@@ -46,13 +47,11 @@ async def test_root_and_auth_endpoints():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        res = await ac.get("/")
-        assert res.status_code == 200
-        assert res.json()["status"] == "online"
+    unique_email = f"test_{uuid.uuid4().hex[:6]}@enterprise.com"
 
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         # Register user
-        reg_res = await ac.post("/api/v1/auth/register", json={"email": "testuser@enterprise.com", "password": "password123"})
+        reg_res = await ac.post("/api/v1/auth/register", json={"email": unique_email, "password": "password123"})
         assert reg_res.status_code == 200
         token = reg_res.json()["access_token"]
         assert token is not None

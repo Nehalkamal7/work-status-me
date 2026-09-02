@@ -1,6 +1,5 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from cryptography.fernet import Fernet
 
 class Settings(BaseSettings):
     APP_NAME: str = "Enterprise Work Status & Sync Intelligence Platform"
@@ -8,7 +7,8 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # Database URL: default to local sqlite+aiosqlite database or PostgreSQL asyncpg
-    DATABASE_URL: str = "sqlite+aiosqlite:///./work_status.db"
+    # On Vercel serverless environments, root path is read-only, so fallback to /tmp
+    DATABASE_URL: str = "sqlite+aiosqlite:////tmp/work_status.db" if os.environ.get("VERCEL") else "sqlite+aiosqlite:///./work_status.db"
     
     # Security
     JWT_SECRET: str = "super-secret-enterprise-jwt-key-2026"
@@ -23,7 +23,6 @@ class Settings(BaseSettings):
     def get_fernet_key(self) -> bytes:
         if self.FERNET_KEY and len(self.FERNET_KEY) == 44:
             return self.FERNET_KEY.encode()
-        # Reproducible valid base64 32-byte Fernet key
         return b"J1dOODNlNWk2Nzdiazh2OWFzZDFmZ2hpamtsbW5vcHE="
 
 settings = Settings()
