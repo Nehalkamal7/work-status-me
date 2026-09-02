@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && npm install && npx vite build",
+  "buildCommand": "if [ -d \"frontend\" ]; then cd frontend; fi && npm install && npx vite build",
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
