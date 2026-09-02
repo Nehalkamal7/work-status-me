@@ -1,14 +1,11 @@
 import os
 import json
 import logging
+import httpx
 from typing import List, Dict, Any
 from app.schemas import ChatExecutiveSummary, ActionItem
-import litellm
 
 logger = logging.getLogger(__name__)
-
-# Silent litellm telemetry
-litellm.telemetry = False
 
 class AIService:
     @staticmethod
@@ -24,7 +21,6 @@ class AIService:
             if not text or any(pattern in text for pattern in ignore_patterns):
                 continue
             
-            # Simple length check for single word greetings
             if text in ["تم", "شكرا", "تمام", "أهلا", "مرحبا", "ok", "thanks"]:
                 continue
                 
@@ -65,29 +61,34 @@ class AIService:
 }}
 """
 
-        # Try LiteLLM call if API Key is configured in environment (OPENAI_API_KEY, GEMINI_API_KEY, etc.)
-        api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("GEMINI_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
-        
-        if api_key:
+        # Direct HTTP API call if OpenAI or Gemini API Key is configured in environment
+        openai_key = os.environ.get("OPENAI_API_KEY")
+        gemini_key = os.environ.get("GEMINI_API_KEY")
+
+        if openai_key:
             try:
-                model_name = "gpt-3.5-turbo" if os.environ.get("OPENAI_API_KEY") else "gemini/gemini-1.5-flash"
-                response = await litellm.acompletion(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    response_format={"type": "json_object"}
-                )
-                content = response.choices[0].message.content
-                data = json.loads(content)
-                
-                action_items = [ActionItem(**item) for item in data.get("action_items", [])]
-                return ChatExecutiveSummary(
-                    summary=data.get("summary", ""),
-                    action_items=action_items,
-                    blockers_and_risks=data.get("blockers_and_risks", []),
-                    confidence_score=float(data.get("confidence_score", 0.95))
-                )
+                async with httpx.AsyncClient(timeout=20.0) as client:
+                    resp = await client.post(
+                        "https://api.openai.com/v1/chat/completions",
+                        headers={"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"},
+                        json={
+                            "model": "gpt-3.5-turbo",
+                            "messages": [{"role": "user", "content": prompt}],
+                            "response_format": {"type": "json_object"}
+                        }
+                    )
+                    if resp.status_code == 200:
+                        content = resp.json()["choices"][0]["message"]["content"]
+                        data = json.loads(content)
+                        action_items = [ActionItem(**item) for item in data.get("action_items", [])]
+                        return ChatExecutiveSummary(
+                            summary=data.get("summary", ""),
+                            action_items=action_items,
+                            blockers_and_risks=data.get("blockers_and_risks", []),
+                            confidence_score=float(data.get("confidence_score", 0.95))
+                        )
             except Exception as e:
-                logger.error(f"LLM API call failed: {e}. Falling back to NLP rules engine.")
+                logger.error(f"OpenAI API call failed: {e}")
 
         # Fallback Deterministic Rules Engine (runs if no external LLM key is provided)
         return cls._rule_based_fallback(group_name, messages)
@@ -105,7 +106,6 @@ class AIService:
             sender = m.get("sender", "عضو الفريق")
             text = m.get("message_text", "")
             
-            # Check actions
             if any(kw in text.lower() for kw in keywords_action):
                 action_items.append(ActionItem(
                     task=text[:120],
@@ -113,7 +113,6 @@ class AIService:
                     urgency="High" if any(u in text for u in ["عاجل", "ضروري", "urgent"]) else "Normal"
                 ))
             
-            # Check risks
             if any(kw in text.lower() for kw in keywords_risk):
                 blockers.append(f"ملاحظة من {sender}: {text[:120]}")
 
