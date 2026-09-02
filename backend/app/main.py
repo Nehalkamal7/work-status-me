@@ -10,7 +10,6 @@ from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
 from app.models import User, TenantIntegration, Project
 from app.security import hash_password, generate_api_key
-from app.services.scheduler import scheduler
 from app.api import auth, integrations, projects, whatsapp, sync
 
 logging.basicConfig(level=logging.INFO)
@@ -182,11 +181,13 @@ async def lifespan(app: FastAPI):
         logger.error(f"Error in lifespan DB init: {e}")
 
     if not os.environ.get("VERCEL"):
+        from app.services.scheduler import scheduler
         scheduler.start()
 
     yield
 
     if not os.environ.get("VERCEL"):
+        from app.services.scheduler import scheduler
         scheduler.stop()
 
 # Use lifespan context manager for standalone server, bypass for Vercel lambdas to prevent lifespan block
