@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend 2>/dev/null || cd ../frontend 2>/dev/null || true; npm install && (chmod +x node_modules/.bin/* 2>/dev/null || true) && npx vite build",
+  "buildCommand": "cd frontend && npm install && npx vite build",
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
