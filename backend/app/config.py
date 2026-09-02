@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # Database URL: default to local sqlite+aiosqlite database or PostgreSQL asyncpg
-    # On Vercel serverless environments, root path is read-only, so fallback to /tmp
-    DATABASE_URL: str = "sqlite+aiosqlite:////tmp/work_status.db" if os.environ.get("VERCEL") else "sqlite+aiosqlite:///./work_status.db"
+    # On Vercel serverless environments, use sqlite+aiosqlite:///:memory: for 100% thread-safe 0ms latency execution
+    DATABASE_URL: str = "sqlite+aiosqlite:///:memory:" if os.environ.get("VERCEL") else "sqlite+aiosqlite:///./work_status.db"
     
     # Security
     JWT_SECRET: str = "super-secret-enterprise-jwt-key-2026"

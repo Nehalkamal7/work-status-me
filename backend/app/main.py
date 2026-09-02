@@ -181,7 +181,6 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Error in lifespan DB init: {e}")
 
-    # Only start background loop when running outside Vercel serverless environment
     if not os.environ.get("VERCEL"):
         scheduler.start()
 
@@ -190,10 +189,13 @@ async def lifespan(app: FastAPI):
     if not os.environ.get("VERCEL"):
         scheduler.stop()
 
+# Use lifespan context manager for standalone server, bypass for Vercel lambdas to prevent lifespan block
+lifespan_handler = None if os.environ.get("VERCEL") else lifespan
+
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan_handler
 )
 
 # CORS Setup
