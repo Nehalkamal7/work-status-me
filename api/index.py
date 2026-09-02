@@ -1,7 +1,7 @@
 import sys
 import os
 
-# Add backend directory to Python path dynamically across all Vercel directory layouts
+# Add backend directory to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 backend_dir_option1 = os.path.join(current_dir, "..", "backend")
 backend_dir_option2 = os.path.join(current_dir, "backend")
@@ -12,5 +12,7 @@ for b_dir in [backend_dir_option1, backend_dir_option2, backend_dir_option3]:
         sys.path.insert(0, b_dir)
 
 from app.main import app
+from mangum import Mangum
 
+handler = Mangum(app, api_gateway_base_path=None)
 app = app
